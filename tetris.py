@@ -1,13 +1,33 @@
 import pygame
-from pygame import mixer
+import sys
+import os
 from copy import deepcopy
+from pygame import mixer
 from random import choice, randrange
 
+pygame.init()
+
+screen_size = (750, 940)
+screen = pygame.display.set_mode(screen_size)
 W, H = 10, 20
 TILE = 45
 GAME_RES = W * TILE, H * TILE
 RES = 750, 940
-FPS = 50
+FPS = 60
+
+def load_image(name, color_key=None):
+    fullname = os.path.join('data', name)
+    try:
+        image = pygame.image.load(fullname)
+    except pygame.error as message:
+        print('Не удаётся загрузить:', name)
+        raise SystemExit(message)
+    image = image.convert_alpha()
+    if color_key is not None:
+        if color_key is -1:
+            color_key = image.get_at((0, 0))
+        image.set_colorkey(color_key)
+    return image
 
 
 def terminate():
@@ -16,18 +36,15 @@ def terminate():
 
 
 def start_screen():
-    intro_text = ["Тетрис", "",
-                  "Правила игры",
-                  "Правил игры нету",
-                  "все их знают",
-                  "Игра багованая, но и ***"]
+    intro_text = ["",
+                  ""]
 
-    fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
+    fon = pygame.transform.scale(load_image('img/fon.jpg'), (750, 940))
     screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 30)
+    font = pygame.font.Font(None, 54)
     text_coord = 50
     for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
+        string_rendered = font.render(line, 1, pygame.Color(255, 165, 0))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -46,7 +63,6 @@ def start_screen():
         clock.tick(FPS)
 
 
-pygame.init()
 sc = pygame.display.set_mode(RES)
 game_sc = pygame.Surface(GAME_RES)
 clock = pygame.time.Clock()
@@ -54,13 +70,15 @@ clock = pygame.time.Clock()
 # название и иконка
 pygame.display.set_caption("Tetris remake ")
 
+start_screen()
+
 # Soundtrack
 mixer.music.load('data/myz/1.mp3')
 mixer.music.set_volume(0.15)
 mixer.music.play(-1)
 
 grid = [pygame.Rect(x * TILE, y * TILE, TILE, TILE) for x in range(W) for y in range(H)]
-# координаты фигур
+
 figures_pos = [[(-1, 0), (-2, 0), (0, 0), (1, 0)],
                [(0, -1), (-1, -1), (-1, 0), (0, 0)],
                [(-1, 0), (-1, 1), (0, 0), (0, -1)],
@@ -117,6 +135,7 @@ def set_record(record, score):
         f.write(str(rec))
 
 
+
 while True:
     record = get_record()
     dx, rotate = 0, False
@@ -131,13 +150,13 @@ while True:
         if event.type == pygame.QUIT:
             exit()
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
+            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                 dx = -1
-            elif event.key == pygame.K_RIGHT:
+            elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                 dx = 1
-            elif event.key == pygame.K_DOWN:
+            elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
                 anim_limit = 100
-            elif event.key == pygame.K_UP:
+            elif event.key == pygame.K_UP or event.key == pygame.K_w:
                 rotate = True
     # перемещение по x
     figure_old = deepcopy(figure)
@@ -185,7 +204,7 @@ while True:
         else:
             anim_speed += 3
             lines += 1
-    # вычясление результата
+    # вычисление результата
     score += scores[lines]
     # создание сетки
     [pygame.draw.rect(game_sc, (40, 40, 40), i_rect, 1) for i_rect in grid]
@@ -218,41 +237,11 @@ while True:
             field = [[0 for i in range(W)] for i in range(H)]
             anim_count, anim_speed, anim_limit = 0, 60, 2000
             score = 0
-            pygame.mixer.pause()
             for i_rect in grid:
                 pygame.draw.rect(game_sc, get_color(), i_rect)
                 sc.blit(game_sc, (20, 20))
                 pygame.display.flip()
                 clock.tick(200)
-
-
-def start_screen():
-    intro_text = ["Перемещение героя", "",
-                  "Герой двигается",
-                  "Карта на месте"]
-
-    fon = pygame.transform.scale(load_image('data/img/fon.jpg'), screen_size)
-    screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
-                return
-        pygame.display.flip()
-        clock.tick(FPS)
 
     pygame.display.flip()
     clock.tick(FPS)

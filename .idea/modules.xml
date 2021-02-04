@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Python-Tetris-master.iml" filepath="$PROJECT_DIR$/.idea/Python-Tetris-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/tetris-game.iml" filepath="$PROJECT_DIR$/.idea/tetris-game.iml" />
     </modules>
   </component>
 </project>
